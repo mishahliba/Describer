@@ -29,6 +29,7 @@ public class DescribeMethodProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Collection<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(DescribeMethods.class);
         List<TypeElement> types = ElementFilter.typesIn(annotatedElements);
+        System.out.println("Found annotation : " );
 
         String className=null;
         for(TypeElement type : types){
