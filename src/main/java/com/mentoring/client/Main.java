@@ -9,12 +9,10 @@ import com.mentoring.service.DefaultService;
 public class Main {
     public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException {
         DescribeMethodHandler handler = new DescribeMethodHandler();
-        DefaultService service = handler.getServiceInstance();
-
+        DefaultService service = null;
+        service = handler.getServiceInstance();
         String [] s = service.allMethods;
-        for (String i:s){
-            System.out.println(i);
-        }
+
 
     }
 }

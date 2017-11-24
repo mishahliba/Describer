@@ -1,10 +1,14 @@
 package com.mentoring.processor;
 
+import com.mentoring.annotation.DescribeMethods;
 import com.mentoring.service.DefaultService;
+import exception.CustomInstantiationException;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,27 +20,34 @@ public class DescribeMethodHandler {
     private PackageWalkerUtil packageUtil = new PackageWalkerUtil();
     private final String pathPattern = "\\bcom\\b[.]\\S*[.]?\\bmodel\\b[.](?=[^.]*$)";
     private String path = "com.*.model.*";
-    private static DefaultService service;
 
-    public DefaultService getServiceInstance() throws ClassNotFoundException, IllegalAccessException {
-        initializeAnnotatedService();
+    public DefaultService getServiceInstance() {
+        DefaultService service = (DefaultService)initializeAnnotatedService(DefaultService.class);
         Field annotatedField = null;
         ArrayList<Class> fitPatternClasses = findClassesByPattern();
-        try {
-            annotatedField = DefaultService.class.getDeclaredField("allMethods");
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
+        Field[] declaredFields = DefaultService.class.getFields();
+        for (int i = 0; i < declaredFields.length; i++) {
+            if (declaredFields[i].isAnnotationPresent(DescribeMethods.class))
+                annotatedField = declaredFields[i];
         }
         List<String> collectedMethodInfo = new ArrayList<>();
-        for(Class cl : fitPatternClasses){
+        for (Class cl : fitPatternClasses) {
             Method[] classMethods = cl.getDeclaredMethods();
-            for(Method method : classMethods){
+            for (Method method : classMethods) {
                 String methodPrintInfo = Modifier.toString(method.getModifiers()) + " " + method.getReturnType() + " " + method.getName();
                 System.out.println(methodPrintInfo);
                 collectedMethodInfo.add(methodPrintInfo);
             }
         }
-        annotatedField.set(service, collectedMethodInfo.toArray(new String[0]));
+        try {
+            annotatedField.set(service, collectedMethodInfo.toArray(new String[0]));
+        } catch (IllegalAccessException e) {
+            try {
+                throw new CustomInstantiationException("cannot set value");
+            } catch (CustomInstantiationException e1) {
+                e.getMessage();
+            }
+        }
         return service;
     }
 
@@ -54,13 +65,14 @@ public class DescribeMethodHandler {
         return matchedByPattern;
     }
 
-    private void initializeAnnotatedService() {
+    public Object initializeAnnotatedService(Class clazz) {
+        Object instance = null;
         try {
-            service = DefaultService.class.newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            instance = clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException i) {
+            throw new RuntimeException("cannot initialize class");
+
         }
+        return instance;
     }
 }
