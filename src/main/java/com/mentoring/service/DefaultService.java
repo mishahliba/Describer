@@ -8,8 +8,8 @@ import com.mentoring.annotation.DescribeMethods;
 import com.mentoring.model.MyAccount;
 
 public class DefaultService {
-    @DescribeMethods(MyAccount.class) // "*.*.task", "com.project.*.task.*"
-    public String[] allMethods;
+    @DescribeMethods // "*.*.task", "com.project.*.task.*"
+    public String [] allMethods;
 
 
 }

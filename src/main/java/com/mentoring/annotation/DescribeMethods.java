@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 /**
  * Created by beerman on 23.11.2017.
  */
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface DescribeMethods {
-    Class value();
+
 }
 
