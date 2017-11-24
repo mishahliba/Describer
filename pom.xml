@@ -40,37 +40,23 @@
                 <version>${jacoco.version}</version>
                 <executions>
                     <execution>
-                        <id>prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>post-unit-test</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
+                        <id>default-check</id>
                         <configuration>
-                            <!-- Sets the path to the file which contains the execution data. -->
-
-                            <dataFile>target/jacoco.exec</dataFile>
-                            <!-- Sets the output directory for the code coverage report. -->
-                            <outputDirectory>target/jacoco-ut</outputDirectory>
+                            <rules>
+                                <rule implementation="org.jacoco.maven.RuleConfiguration">
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit implementation="org.jacoco.report.check.Limit">
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
                         </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <destFile>${basedir}/target/coverage-reports/jacoco-unit.exec</destFile>
-                    <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
-                </configuration>
             </plugin>
         </plugins>
     </build>

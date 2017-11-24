@@ -2,7 +2,7 @@ package com.mentoring.processor;
 
 import com.mentoring.annotation.DescribeMethods;
 import com.mentoring.service.DefaultService;
-import exception.CustomInstantiationException;
+import com.mentoring.exception.CustomInstantiationException;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -23,22 +23,9 @@ public class DescribeMethodHandler {
 
     public DefaultService getServiceInstance() {
         DefaultService service = (DefaultService)initializeAnnotatedService(DefaultService.class);
-        Field annotatedField = null;
-        ArrayList<Class> fitPatternClasses = findClassesByPattern();
-        Field[] declaredFields = DefaultService.class.getFields();
-        for (int i = 0; i < declaredFields.length; i++) {
-            if (declaredFields[i].isAnnotationPresent(DescribeMethods.class))
-                annotatedField = declaredFields[i];
-        }
-        List<String> collectedMethodInfo = new ArrayList<>();
-        for (Class cl : fitPatternClasses) {
-            Method[] classMethods = cl.getDeclaredMethods();
-            for (Method method : classMethods) {
-                String methodPrintInfo = Modifier.toString(method.getModifiers()) + " " + method.getReturnType() + " " + method.getName();
-                System.out.println(methodPrintInfo);
-                collectedMethodInfo.add(methodPrintInfo);
-            }
-        }
+        ArrayList<Class> fitPatternClasses = findClassesByPattern(pathPattern);
+        Field annotatedField = getAnnotatedField(DefaultService.class);
+        List<String> collectedMethodInfo = getMethodInfo(fitPatternClasses);
         try {
             annotatedField.set(service, collectedMethodInfo.toArray(new String[0]));
         } catch (IllegalAccessException e) {
@@ -51,7 +38,30 @@ public class DescribeMethodHandler {
         return service;
     }
 
-    private ArrayList<Class> findClassesByPattern() {
+    public Field getAnnotatedField(Class clazz) {
+        Field annotatedField = null;
+        Field[] declaredFields = clazz.getFields();
+        for (int i = 0; i < declaredFields.length; i++) {
+            if (declaredFields[i].isAnnotationPresent(DescribeMethods.class))
+                annotatedField = declaredFields[i];
+        }
+        return annotatedField;
+    }
+
+    public List<String> getMethodInfo(ArrayList<Class> fitPatternClasses) {
+        List<String> collectedMethodInfo = new ArrayList<>();
+        for (Class cl : fitPatternClasses) {
+            Method[] classMethods = cl.getDeclaredMethods();
+            for (Method method : classMethods) {
+                String methodPrintInfo = Modifier.toString(method.getModifiers()) + " " + method.getReturnType() + " " + method.getName();
+                System.out.println(methodPrintInfo);
+                collectedMethodInfo.add(methodPrintInfo);
+            }
+        }
+        return collectedMethodInfo;
+    }
+
+    public ArrayList<Class> findClassesByPattern(String pathPattern) {
         ArrayList<Class> matchedByPattern = new ArrayList<>();
         Pattern pattern = Pattern.compile(pathPattern);
         String searchPrefix = path.split("[.]")[0];
@@ -71,7 +81,6 @@ public class DescribeMethodHandler {
             instance = clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException i) {
             throw new RuntimeException("cannot initialize class");
-
         }
         return instance;
     }

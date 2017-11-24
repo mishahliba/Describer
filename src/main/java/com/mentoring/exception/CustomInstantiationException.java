@@ -1,4 +1,4 @@
-package exception;
+    package com.mentoring.exception;
 
 /**
  * Created by myhl0716 on 11/24/2017.

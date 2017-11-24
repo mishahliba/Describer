@@ -10,8 +10,9 @@ import java.util.List;
 /**
  * Created by beerman on 24.11.2017.
  */
-    public class PackageWalkerUtil {
-    public static Class[] getClasses(String packageName){
+public class PackageWalkerUtil {
+
+    public Class[] getClasses(String packageName) {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
         String path = packageName.replace('.', '/');
@@ -37,7 +38,7 @@ import java.util.List;
         return classes.toArray(new Class[classes.size()]);
     }
 
-    private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
+    public List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
         List<Class> classes = new ArrayList<Class>();
         if (!directory.exists()) {
             return classes;
