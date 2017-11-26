@@ -1,8 +1,7 @@
-package com.mentoring.processor;
+package com.describer.processor;
 
-import com.mentoring.annotation.DescribeMethods;
-import com.mentoring.service.DefaultService;
-import com.mentoring.exception.CustomInstantiationException;
+import com.describer.annotation.DescribeMethods;
+import com.describer.service.DefaultService;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -13,27 +12,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by beerman on 23.11.2017.
+ * Class responsible for creation of DefaultService copy and
+ * providing allMethod field with info about methods of specific classes
  */
 
 public class DescribeMethodHandler {
-    private PackageWalkerUtil packageUtil = new PackageWalkerUtil();
-    private final String pathPattern = "\\bcom\\b[.]\\S*[.]?\\bmodel\\b[.](?=[^.]*$)";
-    private String path = "com.*.model.*";
 
-    public DefaultService getServiceInstance() {
-        DefaultService service = (DefaultService)initializeAnnotatedService(DefaultService.class);
-        ArrayList<Class> fitPatternClasses = findClassesByPattern(pathPattern);
+    private PackageWalkerUtil packageUtil;
+    private static final String pathPattern = "\\bcom\\b[.]\\S*[.]?\\bmodel\\b[.](?=[^.]*$)";
+    private static final String path = "com.*.model.*";
+
+    public DescribeMethodHandler() {
+        packageUtil = new PackageWalkerUtil();
+    }
+
+    public DefaultService getServiceInstanceCopy() {
+        DefaultService service = (DefaultService) initializeAnnotatedService(DefaultService.class);
+        List<Class> fitPatternClasses = findByPattern(pathPattern);
         Field annotatedField = getAnnotatedField(DefaultService.class);
         List<String> collectedMethodInfo = getMethodInfo(fitPatternClasses);
         try {
             annotatedField.set(service, collectedMethodInfo.toArray(new String[0]));
-        } catch (IllegalAccessException e) {
-            try {
-                throw new CustomInstantiationException("cannot set value");
-            } catch (CustomInstantiationException e1) {
-                e.getMessage();
-            }
+        } catch (Exception e) {
+            e.getCause();
         }
         return service;
     }
@@ -42,35 +43,36 @@ public class DescribeMethodHandler {
         Field annotatedField = null;
         Field[] declaredFields = clazz.getFields();
         for (int i = 0; i < declaredFields.length; i++) {
-            if (declaredFields[i].isAnnotationPresent(DescribeMethods.class))
+            if (declaredFields[i].isAnnotationPresent(DescribeMethods.class)) {
                 annotatedField = declaredFields[i];
+                break;
+            }
         }
         return annotatedField;
     }
 
-    public List<String> getMethodInfo(ArrayList<Class> fitPatternClasses) {
+    public List<String> getMethodInfo(List<Class> fitPatternClasses) {
         List<String> collectedMethodInfo = new ArrayList<>();
         for (Class cl : fitPatternClasses) {
             Method[] classMethods = cl.getDeclaredMethods();
             for (Method method : classMethods) {
                 String methodPrintInfo = Modifier.toString(method.getModifiers()) + " " + method.getReturnType() + " " + method.getName();
-                System.out.println(methodPrintInfo);
                 collectedMethodInfo.add(methodPrintInfo);
             }
         }
         return collectedMethodInfo;
     }
 
-    public ArrayList<Class> findClassesByPattern(String pathPattern) {
-        ArrayList<Class> matchedByPattern = new ArrayList<>();
+    public List<Class> findByPattern(String pathPattern) {
+        List<Class> matchedByPattern = new ArrayList<>();
         Pattern pattern = Pattern.compile(pathPattern);
         String searchPrefix = path.split("[.]")[0];
         Matcher matcher;
         Class[] projectClasses = packageUtil.getClasses(searchPrefix);
-        for (Class c : projectClasses) {
-            matcher = pattern.matcher(c.getName());
+        for (Class clazz : projectClasses) {
+            matcher = pattern.matcher(clazz.getName());
             if (matcher.lookingAt())
-                matchedByPattern.add(c);
+                matchedByPattern.add(clazz);
         }
         return matchedByPattern;
     }
